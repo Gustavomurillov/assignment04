@@ -1,0 +1,7 @@
+---
+title: "assignment04"
+format: html
+editor: visual
+self-contained: true
+authors: Gustavo Murillo and Sean Conner
+---
