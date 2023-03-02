@@ -16,7 +16,8 @@ library(janitor)
 ```
 
 # Data Download
-```{r}
+
+```{r message=FALSE, warning=FALSE}
 
 # download EPI 2022 raw data into data folder in the working directory
 download.file(
@@ -24,29 +25,23 @@ download.file(
   destfile = "data/epi_2022.zip"
 )
 
+download.file(
+  url = "https://epi.yale.edu/downloads/epi2022results05302022.csv",
+  destfile = "data/epi_2022.csv"
+)
+
+epi_results <- read_csv("data/epi_2022.csv") %>%
+  filter(
+    country == "United States of America"
+  )
+
 # unzip file into data folder in the working directory
 unzip(
   zipfile = "data/epi_2022.zip",
   exdir = "data")
 
 # load emissions data
-ghg_raw <- read_csv("data/2022 EPI Raw Data/GHG_raw.csv")
-
-# load economic data
-gdp_raw <- read_csv("data/2022 EPI Raw Data/GDP_raw.csv")
-
-
-```
-
-# Data Processing and Manipulation
-
-```{r}
-
-# get naming conventions of each country
-unique(ghg_raw$country)
-
-# ghg table
-ghg_fin <- ghg_raw %>%
+raw_ghg <- read_csv("data/2022 EPI Raw Data/GHG_raw.csv") %>%
   # select years 2005 to 2019
   select(country,
          GHG.raw.2005, GHG.raw.2006, GHG.raw.2007,
@@ -59,27 +54,8 @@ ghg_fin <- ghg_raw %>%
            country == "Mexico" |
            country == "United States of America")
 
-ghg_fin <- ghg_fin %>%
-  # pivot table wide to long
-  pivot_longer(cols = c("GHG.raw.2005", "GHG.raw.2006",
-                        "GHG.raw.2007", "GHG.raw.2008",
-                        "GHG.raw.2009", "GHG.raw.2010",
-                        "GHG.raw.2011", "GHG.raw.2012",
-                        "GHG.raw.2013", "GHG.raw.2014",
-                        "GHG.raw.2015", "GHG.raw.2016",
-                        "GHG.raw.2017", "GHG.raw.2018",
-                        "GHG.raw.2019"),
-               names_to = "year",
-               values_to = "emissions")
-
-ghg_fin <- ghg_fin %>%
-  ## change values in year column
-  mutate(
-    year = str_replace(year, "GHG.raw.", "")
-  )
-
-# gdp table
-gdp_fin <- gdp_raw %>%
+# load economic data
+raw_gdp <- read_csv("data/2022 EPI Raw Data/GDP_raw.csv") %>%
   # select years 2005 to 2019
   select(country,
          GDP.raw.2005, GDP.raw.2006, GDP.raw.2007,
@@ -92,7 +68,31 @@ gdp_fin <- gdp_raw %>%
            country == "Mexico" |
            country == "United States of America")
 
-gdp_fin <- gdp_fin %>%
+
+```
+
+# Data Processing and Manipulation
+
+```{r}
+
+fin_ghg <- raw_ghg %>%
+  # pivot table wide to long
+  pivot_longer(cols = c("GHG.raw.2005", "GHG.raw.2006",
+                        "GHG.raw.2007", "GHG.raw.2008",
+                        "GHG.raw.2009", "GHG.raw.2010",
+                        "GHG.raw.2011", "GHG.raw.2012",
+                        "GHG.raw.2013", "GHG.raw.2014",
+                        "GHG.raw.2015", "GHG.raw.2016",
+                        "GHG.raw.2017", "GHG.raw.2018",
+                        "GHG.raw.2019"),
+               names_to = "year",
+               values_to = "emissions") %>%
+  ## change values in year column
+  mutate(
+    year = str_replace(year, "GHG.raw.", "")
+  )
+
+fin_gdp <- raw_gdp %>%
   # pivot table wide to long
   pivot_longer(cols = c("GDP.raw.2005", "GDP.raw.2006",
                         "GDP.raw.2007", "GDP.raw.2008",
@@ -103,17 +103,15 @@ gdp_fin <- gdp_fin %>%
                         "GDP.raw.2017", "GDP.raw.2018",
                         "GDP.raw.2019"),
                names_to = "year",
-               values_to = "GDP")
-
-gdp_fin <- gdp_fin %>%
+               values_to = "GDP") %>%
   ## change values in year column
   mutate(
     year = str_replace(year, "GDP.raw.", "")
   )
 
 # join emissions and GDP tables
-ghg_gdp <- left_join(ghg_fin,
-                     gdp_fin,
+ghg_gdp <- left_join(fin_ghg,
+                     fin_gdp,
                      by = c("country" = "country", "year" = "year"))
 
 
