@@ -25,16 +25,6 @@ download.file(
   destfile = "data/epi_2022.zip"
 )
 
-download.file(
-  url = "https://epi.yale.edu/downloads/epi2022results05302022.csv",
-  destfile = "data/epi_2022.csv"
-)
-
-epi_results <- read_csv("data/epi_2022.csv") %>%
-  filter(
-    country == "United States of America"
-  )
-
 # unzip file into data folder in the working directory
 unzip(
   zipfile = "data/epi_2022.zip",
