@@ -1,7 +1,305 @@
 ---
-title: "assignment04"
+title: "Data Science Assignment 04"
 format: html
 editor: visual
 self-contained: true
 authors: Gustavo Murillo and Sean Conner
 ---
+
+```{r message=FALSE, warning=FALSE}
+# load packages
+library(tidyverse)
+library(dplyr)
+library(readr)
+library(purrr)
+library(janitor)
+library(urbnthemes)
+library(remotes)
+library(scales)
+library(ggrepel)
+
+set_urbn_defaults(style = "print")
+```
+
+# Data Download
+
+```{r message=FALSE, warning=FALSE}
+
+# download EPI 2022 raw data into data folder in the working directory
+download.file(
+  url = "https://epi.yale.edu/downloads/epi2022rawdata.zip",
+  destfile = "data/epi_2022.zip"
+)
+
+# unzip file into data folder in the working directory
+unzip(
+  zipfile = "data/epi_2022.zip",
+  exdir = "data")
+
+# load emissions data
+raw_ghg <- read_csv("data/2022 EPI Raw Data/GHG_raw.csv") %>%
+  # select years 2001 to 2019
+  select(country,
+         GHG.raw.2001, GHG.raw.2002, GHG.raw.2003,
+         GHG.raw.2004, GHG.raw.2005, GHG.raw.2006,
+         GHG.raw.2007, GHG.raw.2008, GHG.raw.2009,
+         GHG.raw.2010, GHG.raw.2011, GHG.raw.2012,
+         GHG.raw.2013, GHG.raw.2014, GHG.raw.2015,
+         GHG.raw.2016, GHG.raw.2017, GHG.raw.2018,
+         GHG.raw.2019)
+
+# load economic data
+raw_gdp <- read_csv("data/2022 EPI Raw Data/GDP_raw.csv") %>%
+  # select years 2001 to 2019
+  select(country,
+         GDP.raw.2001, GDP.raw.2002, GDP.raw.2003,
+         GDP.raw.2004, GDP.raw.2005, GDP.raw.2006,
+         GDP.raw.2007, GDP.raw.2008, GDP.raw.2009,
+         GDP.raw.2010, GDP.raw.2011, GDP.raw.2012,
+         GDP.raw.2013, GDP.raw.2014, GDP.raw.2015,
+         GDP.raw.2016, GDP.raw.2017, GDP.raw.2018,
+         GDP.raw.2019)
+
+# load population data
+raw_pop <- read_csv("data/2022 EPI Raw Data/POP_raw.csv") %>%
+  # select years 2001 to 2019
+  select(country,
+         POP.raw.2001, POP.raw.2002, POP.raw.2003,
+         POP.raw.2004, POP.raw.2005, POP.raw.2006,
+         POP.raw.2007, POP.raw.2008, POP.raw.2009,
+         POP.raw.2010, POP.raw.2011, POP.raw.2012,
+         POP.raw.2013, POP.raw.2014, POP.raw.2015,
+         POP.raw.2016, POP.raw.2017, POP.raw.2018,
+         POP.raw.2019)
+
+
+```
+
+# Data Processing and Manipulation
+
+```{r message=FALSE, warning=FALSE}
+
+fin_ghg <- raw_ghg %>%
+  # pivot table wide to long
+  pivot_longer(cols = c("GHG.raw.2001", "GHG.raw.2002",
+                        "GHG.raw.2003", "GHG.raw.2004",
+                        "GHG.raw.2005", "GHG.raw.2006",
+                        "GHG.raw.2007", "GHG.raw.2008",
+                        "GHG.raw.2009", "GHG.raw.2010",
+                        "GHG.raw.2011", "GHG.raw.2012",
+                        "GHG.raw.2013", "GHG.raw.2014",
+                        "GHG.raw.2015", "GHG.raw.2016",
+                        "GHG.raw.2017", "GHG.raw.2018",
+                        "GHG.raw.2019"),
+               names_to = "year",
+               values_to = "emissions") %>%
+  ## change values in year column
+  mutate(
+    year = str_replace(year, "GHG.raw.", "")
+  )
+
+fin_gdp <- raw_gdp %>%
+  # pivot table wide to long
+  pivot_longer(cols = c("GDP.raw.2001", "GDP.raw.2002",
+                        "GDP.raw.2003", "GDP.raw.2004",
+                        "GDP.raw.2005", "GDP.raw.2006",
+                        "GDP.raw.2007", "GDP.raw.2008",
+                        "GDP.raw.2009", "GDP.raw.2010",
+                        "GDP.raw.2011", "GDP.raw.2012",
+                        "GDP.raw.2013", "GDP.raw.2014",
+                        "GDP.raw.2015", "GDP.raw.2016",
+                        "GDP.raw.2017", "GDP.raw.2018",
+                        "GDP.raw.2019"),
+               names_to = "year",
+               values_to = "GDP") %>%
+  ## change values in year column
+  mutate(
+    year = str_replace(year, "GDP.raw.", "")
+  )
+
+fin_pop <- raw_pop %>%
+  # pivot table wide to long
+  pivot_longer(cols = c("POP.raw.2001", "POP.raw.2002",
+                        "POP.raw.2003", "POP.raw.2004",
+                        "POP.raw.2005", "POP.raw.2006",
+                        "POP.raw.2007", "POP.raw.2008",
+                        "POP.raw.2009", "POP.raw.2010",
+                        "POP.raw.2011", "POP.raw.2012",
+                        "POP.raw.2013", "POP.raw.2014",
+                        "POP.raw.2015", "POP.raw.2016",
+                        "POP.raw.2017", "POP.raw.2018",
+                        "POP.raw.2019"),
+               names_to = "year",
+               values_to = "population") %>%
+  ## change values in year column
+  mutate(
+    year = str_replace(year, "POP.raw.", "")
+  )
+
+# join emissions and GDP tables
+ghg_gdp <- left_join(fin_ghg,
+                     fin_gdp,
+                     by = c("country" = "country", "year" = "year"))
+
+# join ghg_gdp with population table
+ghg_gdp_pop <- left_join(ghg_gdp,
+                         fin_pop,
+                         by = c("country" = "country", "year" = "year")) %>%
+  filter(emissions > 0 & GDP > 0 & population > 0)
+
+# print final, cleaned table
+ghg_gdp_pop
+
+
+```
+
+# Visualization: Emissions per Capita
+
+```{r message=FALSE, warning=FALSE}
+
+# create new variable that measures emissions per unit of GDP
+ghg_gdp_pop <- ghg_gdp_pop %>%
+  mutate(emissions_per_capita = (emissions / population))
+
+# visualize the new variable over time from 2005 to 2019
+ghg_gdp_pop %>%
+  filter(country %in% c("Canada",
+                        "Mexico",
+                        "United States of America")) %>%
+  mutate(country = factor(country,
+                          levels = c("Canada",
+                                     "Mexico",
+                                     "United States of America"))) %>%
+  ggplot() +
+  geom_line(aes(x = year, y = emissions_per_capita,
+                group = country,
+                color = country)) +
+  geom_vline(xintercept = 15,
+             linetype = "dashed",
+             alpha = 0.5) +
+  annotate("text", x = 16.5, y = 0.015,
+           label = "Paris Climate\nAgreement",
+           alpha = 0.5) +
+  geom_vline(xintercept = 5,
+             linetype = "dashed",
+             alpha = 0.5) +
+  annotate("text", x = 6.6, y = 0.015,
+           label = "Kyoto Protocol\ntakes effect",
+           alpha = 0.5) +
+  labs(title = "GHG Emissions per Capita from 2001 to 2019",
+       caption = "Source: Yale Center for Environmental Law & Policy",
+       x = NULL,
+       y = "Emissions (metric tons) per Capita") +
+  scale_x_discrete(breaks = c("2001", "2004", "2007", "2010",
+                              "2013", "2016", "2019")) +
+  scale_y_continuous(limits = c(0, 0.03))
+
+```
+
+# Visualization: Cross-sectional, Global Emissions and GDP per Capita in 2019
+
+```{r message=FALSE, warning=FALSE}
+
+ghg_gdp_pop <- ghg_gdp_pop %>%
+  mutate(gdp_per_capita = (GDP / population))
+
+ggplot() +
+    geom_point(data = filter(ghg_gdp_pop,
+                           year == 2019 &
+                             (country != "Canada" &
+                                country != "Mexico" &
+                                country != "United States of America")),
+             aes(x = emissions_per_capita, y = factor(1),
+                 size = gdp_per_capita),
+             alpha = 0.4,
+             color = "gray") +
+  geom_point(data = filter(ghg_gdp_pop,
+                           year == 2019 &
+                             country == "Canada"),
+             aes(x = emissions_per_capita, y = factor(1),
+                 size = gdp_per_capita),
+             alpha = 0.8,
+             color = "#f44336") +
+  geom_point(data = filter(ghg_gdp_pop,
+                           year == 2019 &
+                             country == "Mexico"),
+             aes(x = emissions_per_capita, y = factor(1),
+                 size = gdp_per_capita),
+             alpha = 0.8,
+             color = "#38761d") +
+  geom_point(data = filter(ghg_gdp_pop,
+                           year == 2019 &
+                             country == "United States of America"),
+             aes(x = emissions_per_capita, y = factor(1),
+                 size = gdp_per_capita),
+             alpha = 0.8,
+             color = "#2876b0") +
+  geom_text_repel(data = filter(ghg_gdp_pop,
+                          year == 2019 &
+                            (country == "Canada" |
+                               country == "Mexico" |
+                               country == "United States of America")),
+            aes(x = emissions_per_capita, y = factor(1),
+                label = country),
+            size = 3) +
+  scale_radius(labels = scales::label_dollar(scale_cut = cut_long_scale())) +
+  scale_y_discrete(labels = "") +
+  labs(title = paste0("Dispersion of Global Greenhouse Gas Emissions\nby ",
+                      "Country GDP per Capita in 2019"),
+       x = "Emissions (metric tons) per Capita",
+       y = NULL,
+       caption = "Source: Yale Center for Environmental Law & Policy")
+
+```
+
+# Visualization: Longitudinal, Tracking the Relationship of Emissions and GDP from 2001 to 2019
+
+```{r message=FALSE, warning=FALSE}
+
+c <- ghg_gdp_pop %>%
+  filter(country %in% c("Canada")) %>%
+  ggplot() +
+  geom_path(mapping = aes(x = emissions_per_capita, y = gdp_per_capita,
+                          group = country)) +
+  geom_text_repel(mapping = aes(x = emissions_per_capita, y = gdp_per_capita,
+                                label = year)) +
+  labs(title = "Canada: Emissions and GDP from 2001 to 2019",
+       x = "Emissions (metric tons) per Capita",
+       y = "GDP per Capita",
+       caption = "Source: Yale Center for Environmental Law & Policy") +
+  scale_y_continuous(limits = c(35000, 50000),
+                     labels = scales::dollar)
+
+m <- ghg_gdp_pop %>%
+  filter(country %in% c("Mexico")) %>%
+  ggplot() +
+  geom_path(mapping = aes(x = emissions_per_capita, y = gdp_per_capita,
+                          group = country)) +
+  geom_text_repel(mapping = aes(x = emissions_per_capita, y = gdp_per_capita,
+                                label = year)) +
+  labs(title = "Mexico: Emissions and GDP from 2001 to 2019",
+       x = "Emissions (metric tons) per Capita",
+       y = "GDP per Capita",
+       caption = "Source: Yale Center for Environmental Law & Policy") +
+  scale_y_continuous(limits = c(17000, 20000),
+                      labels = scales::dollar)
+
+us <- ghg_gdp_pop %>%
+  filter(country %in% c("United States of America")) %>%
+  ggplot() +
+  geom_path(mapping = aes(x = emissions_per_capita, y = gdp_per_capita,
+                          group = country)) +
+  geom_text_repel(mapping = aes(x = emissions_per_capita, y = gdp_per_capita,
+                                label = year)) +
+  labs(title = "United States: Emissions and GDP from 2001 to 2019",
+       x = "Emissions (metric tons) per Capita",
+       y = "GDP per Capita",
+       caption = "Source: Yale Center for Environmental Law & Policy") +
+  scale_y_continuous(limits = c(50000, 65000),
+                     labels = scales::dollar)
+
+c
+m
+us
+
+```
