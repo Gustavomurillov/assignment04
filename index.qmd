@@ -13,6 +13,13 @@ library(dplyr)
 library(readr)
 library(purrr)
 library(janitor)
+library(urbnthemes)
+library(remotes)
+library(gapminder)
+library(scales)
+library(ggrepel)
+
+set_urbn_defaults(style = "print")
 ```
 
 # Data Download
@@ -34,29 +41,25 @@ unzip(
 raw_ghg <- read_csv("data/2022 EPI Raw Data/GHG_raw.csv") %>%
   # select years 2005 to 2019
   select(country,
-         GHG.raw.2005, GHG.raw.2006, GHG.raw.2007,
-         GHG.raw.2008, GHG.raw.2009, GHG.raw.2010,
-         GHG.raw.2011, GHG.raw.2012, GHG.raw.2013,
-         GHG.raw.2014, GHG.raw.2015, GHG.raw.2016,
-         GHG.raw.2017, GHG.raw.2018, GHG.raw.2019) %>%
-  # filter for desired countries
-  filter(country == "Canada" |
-           country == "Mexico" |
-           country == "United States of America")
+         GHG.raw.2001, GHG.raw.2002, GHG.raw.2003,
+         GHG.raw.2004, GHG.raw.2005, GHG.raw.2006,
+         GHG.raw.2007, GHG.raw.2008, GHG.raw.2009,
+         GHG.raw.2010, GHG.raw.2011, GHG.raw.2012,
+         GHG.raw.2013, GHG.raw.2014, GHG.raw.2015,
+         GHG.raw.2016, GHG.raw.2017, GHG.raw.2018,
+         GHG.raw.2019)
 
 # load economic data
 raw_gdp <- read_csv("data/2022 EPI Raw Data/GDP_raw.csv") %>%
   # select years 2005 to 2019
   select(country,
-         GDP.raw.2005, GDP.raw.2006, GDP.raw.2007,
-         GDP.raw.2008, GDP.raw.2009, GDP.raw.2010,
-         GDP.raw.2011, GDP.raw.2012, GDP.raw.2013,
-         GDP.raw.2014, GDP.raw.2015, GDP.raw.2016,
-         GDP.raw.2017, GDP.raw.2018, GDP.raw.2019) %>%
-  # filter for desired countries
-  filter(country == "Canada" |
-           country == "Mexico" |
-           country == "United States of America")
+         GDP.raw.2001, GDP.raw.2002, GDP.raw.2003,
+         GDP.raw.2004, GDP.raw.2005, GDP.raw.2006,
+         GDP.raw.2007, GDP.raw.2008, GDP.raw.2009,
+         GDP.raw.2010, GDP.raw.2011, GDP.raw.2012,
+         GDP.raw.2013, GDP.raw.2014, GDP.raw.2015,
+         GDP.raw.2016, GDP.raw.2017, GDP.raw.2018,
+         GDP.raw.2019)
 
 
 ```
@@ -67,7 +70,9 @@ raw_gdp <- read_csv("data/2022 EPI Raw Data/GDP_raw.csv") %>%
 
 fin_ghg <- raw_ghg %>%
   # pivot table wide to long
-  pivot_longer(cols = c("GHG.raw.2005", "GHG.raw.2006",
+  pivot_longer(cols = c("GHG.raw.2001", "GHG.raw.2002",
+                        "GHG.raw.2003", "GHG.raw.2004",
+                        "GHG.raw.2005", "GHG.raw.2006",
                         "GHG.raw.2007", "GHG.raw.2008",
                         "GHG.raw.2009", "GHG.raw.2010",
                         "GHG.raw.2011", "GHG.raw.2012",
@@ -84,7 +89,9 @@ fin_ghg <- raw_ghg %>%
 
 fin_gdp <- raw_gdp %>%
   # pivot table wide to long
-  pivot_longer(cols = c("GDP.raw.2005", "GDP.raw.2006",
+  pivot_longer(cols = c("GDP.raw.2001", "GDP.raw.2002",
+                        "GDP.raw.2003", "GDP.raw.2004",
+                        "GDP.raw.2005", "GDP.raw.2006",
                         "GDP.raw.2007", "GDP.raw.2008",
                         "GDP.raw.2009", "GDP.raw.2010",
                         "GDP.raw.2011", "GDP.raw.2012",
@@ -107,3 +114,32 @@ ghg_gdp <- left_join(fin_ghg,
 
 ```
 
+# Visualization: Emissions Intensity
+
+```{r}
+
+# create new variable that measures emissions per unit of GDP
+ghg_gdp <- ghg_gdp %>%
+  mutate(emissions_intensity = (emissions / GDP))
+
+# visualize the new variable over time from 2005 to 2019
+ghg_gdp %>%
+  filter(country %in% c("Canada",
+                        "Mexico",
+                        "United States of America")) %>%
+  mutate(country = factor(country,
+                          levels = c("Canada",
+                                     "Mexico",
+                                     "United States of America"))) %>%
+  ggplot() +
+  geom_line(aes(x = year, y = log(emissions_intensity),
+                group = country,
+                color = country)) +
+  labs(title = "GHG Emissions per Unit of GDP from 2001 to 2019",
+       caption = "Source: Yale Environmental Performance Index",
+       x = NULL,
+       y = "Logged Emissions Intensity") +
+  scale_x_discrete(breaks = c("2001", "2004", "2007", "2010",
+                              "2013", "2016", "2019"))
+
+```
