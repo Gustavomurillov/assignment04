@@ -1,14 +1,14 @@
 ---
-title: "Data Science Assignment 04"
+title: "Data Science Assignment 04""
 format: html
 editor: visual
 self-contained: true
 authors: Gustavo Murillo and Sean Conner
 ---
 
-During the renegotiation of the North America Free Trade Agreement (NAFTA), several US congressmen advocated for the inclusion of environment-related provisions to address some concerns over climate change and destructive business practices. While the new United States-Mexico-Canada Agreement (USMCA) includes several provisions on the matter, these are still flexible enough to effectively mitigate climate change. 
+During the renegotiation of the North America Free Trade Agreement (NAFTA), several US congressmen advocated for the inclusion of environment-related provisions to address some concerns over climate change and destructive business practices. While the new United States-Mexico-Canada Agreement (USMCA) includes several provisions on the matter, these are still flexible enough to effectively mitigate climate change.
 
-The following set of visualizations seek to explore how Canada, Mexico and the United States are moving toward a sustainable future and discover what are their strengthens and areas of improvement. 
+The following set of visualizations seek to explore how Canada, Mexico and the United States are moving toward a sustainable future and discover what are their strengthens and areas of improvement.
 
 ```{r message=FALSE, warning=FALSE}
 # load packages
