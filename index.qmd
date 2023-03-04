@@ -6,6 +6,10 @@ self-contained: true
 authors: Gustavo Murillo and Sean Conner
 ---
 
+During the renegotiation of the North America Free Trade Agreement (NAFTA), several US congressmen advocated for the inclusion of environment-related provisions to address some concerns over climate change and destructive business practices. While the new United States-Mexico-Canada Agreement (USMCA) includes several provisions on the matter, these are still flexible enough to effectively mitigate climate change. 
+
+The following set of visualizations seek to explore how Canada, Mexico and the United States are moving toward a sustainable future and discover what are their strengthens and areas of improvement. 
+
 ```{r message=FALSE, warning=FALSE}
 # load packages
 library(tidyverse)
@@ -21,7 +25,7 @@ library(ggrepel)
 set_urbn_defaults(style = "print")
 ```
 
-# Data Download
+## Data Download
 
 ```{r message=FALSE, warning=FALSE}
 
@@ -75,7 +79,7 @@ raw_pop <- read_csv("data/2022 EPI Raw Data/POP_raw.csv") %>%
 
 ```
 
-# Data Processing and Manipulation
+## Data Processing and Manipulation
 
 ```{r message=FALSE, warning=FALSE}
 
@@ -153,7 +157,34 @@ ghg_gdp_pop
 
 ```
 
-# Visualization: Emissions per Capita
+## Visualization: Environmental Performance Index 2022
+
+```{r message=FALSE, warning=FALSE}
+EPI2022 <- read.csv('https://epi.yale.edu/downloads/epi2022results05302022.csv')
+
+new_EPI2022 <- EPI2022 %>%
+  filter(country== "Mexico" | country == "United States of America" | country == "Canada") %>% 
+  select("country", "EPI.new", "HLT.new", "ECO.new", "PCC.new")
+
+## Changing the data
+new_EPI2022 %>% 
+  pivot_longer(cols = -country, names_to = 'indices', values_to = 'values') %>%
+  mutate(indices = str_remove(indices, pattern = '.new'), indices = factor(indices, levels = c("EPI", "HLT", "ECO", "PCC")),
+         country = fct_recode(country, 'USA' = 'United States of America')) %>%
+  ggplot(aes(x=country, y=values, fill=country)) +
+  geom_bar(position="dodge", stat="identity") +
+  geom_text(aes(label=values), vjust=-0.2, size=3)+
+  facet_wrap(~indices) +
+  labs(title = 'Environmental Performance Index 2022',
+       subtitle = 'The state of sustainability in North American countries',
+       x = '',
+       y = 'Index Score (0 to 100)',
+       caption = 'Yale Center for Environmental Law & Policy')
+```
+
+Canada, Mexico and the United States show a similar overall performance in the Environmental Performance Index 2022. However, some differences can be seen across the three policy objectives/ pillars measured within the index. While the three countries show no significant difference in the Ecosystem Vitality pillar, Mexico underperforms in the Environmental Health Pillar (HLT), which measures the quality of air, water, and exposure to heavy metals. In addition, although all countries show significant area of improvement within the Climate Change policy objective, Canada falls 10 points behind Mexico and the United States.
+
+## Visualization: Emissions per Capita
 
 ```{r message=FALSE, warning=FALSE}
 
@@ -196,7 +227,7 @@ ghg_gdp_pop %>%
 
 ```
 
-# Visualization: Cross-sectional, Global Emissions and GDP per Capita in 2019
+## Visualization: Cross-sectional, Global Emissions and GDP per Capita in 2019
 
 ```{r message=FALSE, warning=FALSE}
 
@@ -252,7 +283,7 @@ ggplot() +
 
 ```
 
-# Visualization: Longitudinal, Tracking the Relationship of Emissions and GDP from 2001 to 2019
+## Visualization: Longitudinal, Tracking the Relationship of Emissions and GDP from 2001 to 2019
 
 ```{r message=FALSE, warning=FALSE}
 
@@ -303,3 +334,5 @@ m
 us
 
 ```
+
+Source: [Yale Center for Environmental Law & Policy](https://epi.yale.edu)
