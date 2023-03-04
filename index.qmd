@@ -227,7 +227,11 @@ ghg_gdp_pop %>%
 
 ```
 
-## Visualization: Cross-sectional, Global Emissions and GDP per Capita in 2019
+
+The Environmental Performance Index assigns a single value to every country's state of environmental protection, resilience, and performance. This visualization uses data from the raw data files, supplied on the EPI website, for greenhouse gas emissions and population. Simply, it illustrates the change over time in emissions, measured in metric tons, per capita. Using the data manipulation techniques, written in the code above, we calculated emissions per capita as a new variable for every country in every year from 2001 to 2019 (most recent year of data provided by the EPI). We also highlight two key events for emissions reduction efforts in the 21st century: the Kyoto Protocol coming into effect in 2005 and the Paris Climate Agreement in 2015. There would be a lot more to unpack with additional data, as to the trajectory of these paths, the similarities and differences in the countries' industrial makeups, and the apparent lack of emissions reductions for all three countries.
+
+# Visualization: Cross-sectional, Global Emissions and GDP per Capita in 2019
+
 
 ```{r message=FALSE, warning=FALSE}
 
@@ -283,7 +287,9 @@ ggplot() +
 
 ```
 
-## Visualization: Longitudinal, Tracking the Relationship of Emissions and GDP from 2001 to 2019
+Building on the first visualization, this scale captures where each of the chosen countries fit in the global context of greenhouse gas emissions. Again, we use emissions per capita because absolute emissions counts vary so widely that the graph lacks interpretability. Also, emissions per capita help to standardize countries across all industrial and developmental contexts. This visualization adds context to the first graph, in a way, by zooming in on the 2019 data to show that Canada and the United States certainly outpace Mexico in emissions output but also they outpace many countries, even when accounting for population. We also add another layer of information by sizing the points by GDP per capita. While the relationship is not statistically clear from this graph, at a glance, we can see as emissions increase so does GDP, with a few exceptions. Ultimately, decoupling emissions from GDP will be necessary to fuel a clean energy transition, meaning countries need to understand this relationship and attempt to grow their economies with less emissions-intensive practices.
+
+# Visualization: Longitudinal, Tracking the Relationship of Emissions and GDP from 2001 to 2019
 
 ```{r message=FALSE, warning=FALSE}
 
@@ -335,4 +341,7 @@ us
 
 ```
 
+This last set of visualizations focuses on the apparent relationship in the second graph between emissions and GDP. Each graph shows the emissions-GDP trajectory for one of the three chosen countries. It actually appears to counter the point made in the previous visualization, that over time as emissions per capita have decreased, GDP per capita has increased. We contend that there are other important factors driving GDP growth, and for already developed countries, the relationship may be more spurious than for developing countries. In all, we attempted to understand the data that goes into the EPI scores with this exploratory data analysis and to visualize some of the relationships and assumptions on which these scores are built.
+
 Source: [Yale Center for Environmental Law & Policy](https://epi.yale.edu)
+
