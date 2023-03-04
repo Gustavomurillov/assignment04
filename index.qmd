@@ -1,10 +1,14 @@
 ---
-title: "Data Science Assignment 04"
+title: "Data Science Assignment 04""
 format: html
 editor: visual
 self-contained: true
 authors: Gustavo Murillo and Sean Conner
 ---
+
+During the renegotiation of the North America Free Trade Agreement (NAFTA), several US congressmen advocated for the inclusion of environment-related provisions to address some concerns over climate change and destructive business practices. While the new United States-Mexico-Canada Agreement (USMCA) includes several provisions on the matter, these are still flexible enough to effectively mitigate climate change.
+
+The following set of visualizations seek to explore how Canada, Mexico and the United States are moving toward a sustainable future and discover what are their strengthens and areas of improvement.
 
 ```{r message=FALSE, warning=FALSE}
 # load packages
@@ -21,7 +25,7 @@ library(ggrepel)
 set_urbn_defaults(style = "print")
 ```
 
-# Data Download
+## Data Download
 
 ```{r message=FALSE, warning=FALSE}
 
@@ -75,7 +79,7 @@ raw_pop <- read_csv("data/2022 EPI Raw Data/POP_raw.csv") %>%
 
 ```
 
-# Data Processing and Manipulation
+## Data Processing and Manipulation
 
 ```{r message=FALSE, warning=FALSE}
 
@@ -153,7 +157,34 @@ ghg_gdp_pop
 
 ```
 
-# Visualization: Emissions per Capita
+## Visualization: Environmental Performance Index 2022
+
+```{r message=FALSE, warning=FALSE}
+EPI2022 <- read.csv('https://epi.yale.edu/downloads/epi2022results05302022.csv')
+
+new_EPI2022 <- EPI2022 %>%
+  filter(country== "Mexico" | country == "United States of America" | country == "Canada") %>% 
+  select("country", "EPI.new", "HLT.new", "ECO.new", "PCC.new")
+
+## Changing the data
+new_EPI2022 %>% 
+  pivot_longer(cols = -country, names_to = 'indices', values_to = 'values') %>%
+  mutate(indices = str_remove(indices, pattern = '.new'), indices = factor(indices, levels = c("EPI", "HLT", "ECO", "PCC")),
+         country = fct_recode(country, 'USA' = 'United States of America')) %>%
+  ggplot(aes(x=country, y=values, fill=country)) +
+  geom_bar(position="dodge", stat="identity") +
+  geom_text(aes(label=values), vjust=-0.2, size=3)+
+  facet_wrap(~indices) +
+  labs(title = 'Environmental Performance Index 2022',
+       subtitle = 'The state of sustainability in North American countries',
+       x = '',
+       y = 'Index Score (0 to 100)',
+       caption = 'Yale Center for Environmental Law & Policy')
+```
+
+Canada, Mexico and the United States show a similar overall performance in the Environmental Performance Index 2022. However, some differences can be seen across the three policy objectives/ pillars measured within the index. While the three countries show no significant difference in the Ecosystem Vitality pillar, Mexico underperforms in the Environmental Health Pillar (HLT), which measures the quality of air, water, and exposure to heavy metals. In addition, although all countries show significant area of improvement within the Climate Change policy objective, Canada falls 10 points behind Mexico and the United States.
+
+## Visualization: Emissions per Capita
 
 ```{r message=FALSE, warning=FALSE}
 
@@ -196,9 +227,11 @@ ghg_gdp_pop %>%
 
 ```
 
+
 The Environmental Performance Index assigns a single value to every country's state of environmental protection, resilience, and performance. This visualization uses data from the raw data files, supplied on the EPI website, for greenhouse gas emissions and population. Simply, it illustrates the change over time in emissions, measured in metric tons, per capita. Using the data manipulation techniques, written in the code above, we calculated emissions per capita as a new variable for every country in every year from 2001 to 2019 (most recent year of data provided by the EPI). We also highlight two key events for emissions reduction efforts in the 21st century: the Kyoto Protocol coming into effect in 2005 and the Paris Climate Agreement in 2015. There would be a lot more to unpack with additional data, as to the trajectory of these paths, the similarities and differences in the countries' industrial makeups, and the apparent lack of emissions reductions for all three countries.
 
 # Visualization: Cross-sectional, Global Emissions and GDP per Capita in 2019
+
 
 ```{r message=FALSE, warning=FALSE}
 
@@ -309,4 +342,6 @@ us
 ```
 
 This last set of visualizations focuses on the apparent relationship in the second graph between emissions and GDP. Each graph shows the emissions-GDP trajectory for one of the three chosen countries. It actually appears to counter the point made in the previous visualization, that over time as emissions per capita have decreased, GDP per capita has increased. We contend that there are other important factors driving GDP growth, and for already developed countries, the relationship may be more spurious than for developing countries. In all, we attempted to understand the data that goes into the EPI scores with this exploratory data analysis and to visualize some of the relationships and assumptions on which these scores are built.
+
+Source: [Yale Center for Environmental Law & Policy](https://epi.yale.edu)
 
