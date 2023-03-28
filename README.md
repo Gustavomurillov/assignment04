@@ -2,4 +2,4 @@
 
 Authors: Gustavo Murillo and Sean Conner
 
-Link: https://github.com/Gustavomurillov/assignment04
+GitHub page: https://gustavomurillov.github.io/assignment04/
